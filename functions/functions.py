@@ -15,10 +15,20 @@ activationMode = "toggle"
 
 selectingHotkey = False
 
+
+SETTINGS_DIR = os.path.join(
+    os.environ["LOCALAPPDATA"],
+    "AutoClicker"
+)
+
+os.makedirs(SETTINGS_DIR, exist_ok=True)
+
+
 HOTKEY_FILE = os.path.join(
-    os.path.dirname(__file__),
+    SETTINGS_DIR,
     "clickerSettings.json"
 )
+
 
 
 clickCount = 0
