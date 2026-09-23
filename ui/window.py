@@ -1,28 +1,32 @@
 import tkinter as tk
-from functions.functions import toggleAutoClick, setCps
+from functions.functions import toggleAutoClick, setCps, startHotKeySelection
+from pynput import keyboard
 
 def createWindow():
     
     window = tk.Tk()
     window.title("Auto Clicker")
     window.geometry("300x450")
+    window.configure(bg="#202020")
+    
+    cpsValue = tk.IntVar(value=10)
+    
+    def updateCPS(*args):
+        setCps(int(desiredCPS.get()))
     
     desiredCPS = tk.Spinbox(
         window,
         from_=1,
         to=100000000000,
+        textvariable=cpsValue,
         width=20,
         font=("Consolas", 12, "bold"),
+        bg="#3D3D3D",
+        fg="#F85B00",
+        borderwidth=0
         
     )
     desiredCPS.pack(pady=20, padx=20, ipady=10)
-    
-    def updateCPS():
-        setCps(int(desiredCPS.get()))
-        window.after(100, updateCPS)
-    
-    updateCPS()
-    
     
     def StartAutoClick():
         cps = int(desiredCPS.get())
@@ -31,20 +35,29 @@ def createWindow():
         
         toggleAutoClick(cps)
     
-    startButton = tk.Button(
-        window,
-        text="Start",
-        width=10,
-        height=2,
-        font=("Consolas", 15),
-        borderwidth=0,
-        relief="flat",
-        bg="#323232",
-        fg="#F2F2F2",
-        activebackground="#3D3D3D",
-        activeforeground="#FFFFFF",
+    def selectHotKey():
+        hotKeyButton.config(text="Press a key...")
         
+        def keySelected(key):
+            keyName = str(key).replace("Key.", "")
+            
+            window.after(
+                0,
+                lambda: hotKeyButton.config(text=f"Hotkey: {keyName}")
+            )
+        
+        startHotKeySelection(keySelected)
+        
+    hotKeyButton = tk.Button(
+        window,
+        text="Select Hotkey",
+        command=lambda: selectHotKey(),
+        font=("Consolas", 12, "bold"),
+        bg="#3D3D3D",
+        fg="#F85B00",
+        borderwidth=0
     )
-    startButton.pack()
+    hotKeyButton.pack()
+    
     
     return window

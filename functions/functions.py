@@ -7,6 +7,9 @@ pyautogui.PAUSE = 0
 
 running = False
 cps = 10
+hotKey = keyboard.Key.f6
+selectingHotkey = False
+hotkeyCallback = None
 
 
 def setCps(newCps):
@@ -40,10 +43,33 @@ def toggleAutoClick():
             daemon=True
         )
         thread.start()
+        
+def setHotKey(key):
+    global hotKey
+    hotKey = key
+    
+def startHotKeySelection(callback=None):
+    global selectingHotkey, hotkeyCallback
+    
+    selectingHotkey = True
+    hotkeyCallback = callback
 
 def onPress(key):
-    if key == keyboard.Key.f6:
+    global selectingHotkey
+
+    if selectingHotkey:
+        setHotKey(key)
+        selectingHotkey = False
+
+        if hotkeyCallback:
+            hotkeyCallback(key)
+        return
+
+
+
+    if key == hotKey:
         toggleAutoClick()
+
 
 listener = keyboard.Listener(on_press=onPress)
 listener.start()
