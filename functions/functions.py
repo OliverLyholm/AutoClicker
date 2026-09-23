@@ -10,7 +10,7 @@ pyautogui.PAUSE = 0
 running = False
 cps = 10
 
-
+activationMode = "toggle"
 
 
 selectingHotkey = False
@@ -104,11 +104,15 @@ def onPress(key):
 
 
     if key == hotKey:
-        toggleAutoClick()
+        
+        if activationMode == "toggle":
+            toggleAutoClick()
+        elif activationMode == "hold":
+            if not running:
+                toggleAutoClick()
 
 
-listener = keyboard.Listener(on_press=onPress)
-listener.start()
+
 
     
 def saveHotKey(key):
@@ -144,3 +148,17 @@ def getHotKey():
 def setStatsCallback(callback):
     global statsCallback
     statsCallback = callback
+
+def setActivationMode(mode):
+    global activationMode
+    activationMode = mode
+    
+def onRelease(key):
+    if key == hotKey:
+        
+        if activationMode == "hold":
+            if running:
+                toggleAutoClick()
+                
+listener = keyboard.Listener(on_press=onPress, on_release=onRelease)
+listener.start()
