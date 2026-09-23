@@ -32,7 +32,7 @@ statsCallback = None
 def setCps(newCps):
     global cps
     cps = newCps
-    print(f"CPS changed to: {cps}")
+
 
 
 def autoClick():
@@ -57,7 +57,7 @@ def toggleAutoClick():
     
     if running:
         running = False
-        print("Stopped")
+
         
         if statsCallback:
             statsCallback(cps, clickCount, running)
@@ -66,7 +66,7 @@ def toggleAutoClick():
         running = True
         clickCount = 0
         
-        print(f"Started at {cps} CPS")
+
         
         if statsCallback:
             statsCallback(cps, clickCount, running)
