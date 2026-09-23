@@ -5,3 +5,4 @@ dist
 *.spec
 __init__.py
 __pycache__
+*.json

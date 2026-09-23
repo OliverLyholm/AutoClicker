@@ -2,41 +2,74 @@ import time
 import threading
 import pyautogui
 from pynput import keyboard
+import json
+import os
 
 pyautogui.PAUSE = 0
 
 running = False
 cps = 10
-hotKey = keyboard.Key.f6
+
+
+
+
 selectingHotkey = False
+
+HOTKEY_FILE = os.path.join(
+    os.path.dirname(__file__),
+    "clickerSettings.json"
+)
+
+
+clickCount = 0
+
+#callbacks
 hotkeyCallback = None
+statsCallback = None
+
 
 
 def setCps(newCps):
     global cps
     cps = newCps
+    print(f"CPS changed to: {cps}")
 
 
 def autoClick():
     
-    global running, cps
+    global running, cps, clickCount
     
     delay = 1 / cps
     
     while running:
         pyautogui.click()
+        
+        clickCount += 1
+        
+        if statsCallback:
+            statsCallback(cps, clickCount, running)
+        
         time.sleep(delay)
         
 def toggleAutoClick():
-    global running
+    global running, clickCount
    
     
     if running:
         running = False
         print("Stopped")
+        
+        if statsCallback:
+            statsCallback(cps, clickCount, running)
+        
     else:
         running = True
+        clickCount = 0
+        
         print(f"Started at {cps} CPS")
+        
+        if statsCallback:
+            statsCallback(cps, clickCount, running)
 
         thread = threading.Thread(
             target=autoClick,
@@ -46,7 +79,10 @@ def toggleAutoClick():
         
 def setHotKey(key):
     global hotKey
+
     hotKey = key
+    saveHotKey(key)
+
     
 def startHotKeySelection(callback=None):
     global selectingHotkey, hotkeyCallback
@@ -73,3 +109,38 @@ def onPress(key):
 
 listener = keyboard.Listener(on_press=onPress)
 listener.start()
+
+    
+def saveHotKey(key):
+    if isinstance(key, keyboard.Key):
+        keyName = key.name
+        keyType = "special"
+    else:
+        keyName = key.char
+        keyType = "char"
+    with open(HOTKEY_FILE, "w") as file:
+        json.dump({
+            "type": keyType,
+            "key": keyName
+        }, file)
+
+def loadHotkey():
+    if not os.path.exists(HOTKEY_FILE):
+        return keyboard.Key.f6
+    
+    with open(HOTKEY_FILE, "r") as file:
+        data = json.load(file)
+        
+    if data["type"] == "special":
+        return keyboard.Key[data["key"]]
+    
+    return keyboard.KeyCode.from_char(data["key"])
+
+hotKey = loadHotkey()
+
+def getHotKey():
+    return hotKey
+
+def setStatsCallback(callback):
+    global statsCallback
+    statsCallback = callback

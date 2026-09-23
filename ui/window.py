@@ -1,6 +1,14 @@
 import tkinter as tk
-from functions.functions import toggleAutoClick, setCps, startHotKeySelection
 from pynput import keyboard
+from functions.functions import (
+    toggleAutoClick,
+    setCps,
+    startHotKeySelection,
+    getHotKey,
+    setStatsCallback
+)
+
+
 
 def createWindow():
     
@@ -11,8 +19,62 @@ def createWindow():
     
     cpsValue = tk.IntVar(value=10)
     
+    
     def updateCPS(*args):
-        setCps(int(desiredCPS.get()))
+        setCps(cpsValue.get())
+
+    
+    def selectHotKey():
+        hotKeyButton.config(text="Press a key...")
+        
+        def keySelected(key):
+            keyName = str(key).replace("Key.", "")
+            
+            window.after(
+                0,
+                lambda: hotKeyButton.config(
+                    text=f"Select Hotkey\n(Current: {keyName})"
+                )
+            )
+        
+        startHotKeySelection(keySelected)
+    
+    
+    def updateStats(currentCPS, clicks, running):
+
+        if running:
+            color = "#F85B00"
+            status = "Running"
+        else:
+            color = "#FFFFFF"
+            status = "Stopped"
+
+        window.after(
+            0,
+            lambda: statusLabel.config(
+                text=f"Status: {status}\nCPS: {currentCPS}\nClicks: {clicks:,}",
+                fg=color
+            )
+        )
+        
+    setStatsCallback(updateStats)
+    
+    def formatHotkey(key):
+        keyName = str(key).replace("key.", "")
+        return keyName.upper()
+    
+    cpsLabel = tk.Label(
+        window,
+        text="input desired \n Clicks Per Second",
+        font=("Consolas", 12, "bold"),
+        bg="#202020",
+        fg="#F85B00"
+    )
+    cpsLabel.pack(pady=5, padx=5, ipady=10)
+    
+    
+
+    
     
     desiredCPS = tk.Spinbox(
         window,
@@ -26,38 +88,39 @@ def createWindow():
         borderwidth=0
         
     )
-    desiredCPS.pack(pady=20, padx=20, ipady=10)
+    desiredCPS.pack(ipady=10)
     
-    def StartAutoClick():
-        cps = int(desiredCPS.get())
-        
-        print(f"Button CPS: {cps}")
-        
-        toggleAutoClick(cps)
+    cpsValue.trace_add("write", updateCPS)
     
-    def selectHotKey():
-        hotKeyButton.config(text="Press a key...")
-        
-        def keySelected(key):
-            keyName = str(key).replace("Key.", "")
-            
-            window.after(
-                0,
-                lambda: hotKeyButton.config(text=f"Hotkey: {keyName}")
-            )
-        
-        startHotKeySelection(keySelected)
+    hotKeyLabel = tk.Label(
+        window,
+        text="Select Hotkey \n(Default: F6)",
+        font=("Consolas", 12, "bold"),
+        bg="#202020",
+        fg="#F85B00"
+    )
+    hotKeyLabel.pack(pady=5, padx=5, ipady=10)
+    
+    currentHotKey = formatHotkey(getHotKey())
         
     hotKeyButton = tk.Button(
         window,
-        text="Select Hotkey",
+        text=f"Select Hotkey\n(Current: {currentHotKey})",
         command=lambda: selectHotKey(),
         font=("Consolas", 12, "bold"),
         bg="#3D3D3D",
         fg="#F85B00",
         borderwidth=0
     )
-    hotKeyButton.pack()
+    hotKeyButton.pack(ipady=10)
     
+    statusLabel = tk.Label(
+        window,
+        text="Status: Stopped\nCPS: 10\nClicks: 0",
+        font=("Consolas", 12, "bold"),
+        bg="#202020",
+        fg="#ffffff"
+    )
+    statusLabel.pack(side="bottom", pady=20)
     
     return window
